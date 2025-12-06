@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Scientific Calcu</title>
+  <style>
+    :root{
+      --bg1: #0f1226;
+      --bg2: #071026;
+      --neon-primary: #7afcff;
+      --neon-accent: #ff6bcb;
+      --text: #e6f7ff;
+      --muted: rgba(230,247,255,0.6);
+      font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+    * { box-sizing: border-box; }
+    html,body { height:100%; margin:0; background: linear-gradient(160deg,var(--bg1),var(--bg2)); color:var(--text); }
+    .bg { position:fixed; inset:0; overflow:hidden; z-index:0; pointer-events:none; }
+    .orb { position:absolute; filter:blur(60px); mix-blend-mode:screen; opacity:0.9; }
+    .orb-1 { width:520px; height:520px; left:-10%; top:-20%; background: radial-gradient(circle at 30% 30%, #7afcff, transparent 35%), radial-gradient(circle at 70% 70%, #ff6bcb, transparent 30%); animation: drift1 18s ease-in-out infinite; }
+    .orb-2 { width:420px; height:420px; right:-5%; top:10%; background: radial-gradient(circle at 40% 30%, #8affb2, transparent 35%), radial-gradient(circle at 60% 70%, #7afcff, transparent 35%); animation: drift2 16s ease-in-out infinite; }
+    .orb-3 { width:300px; height:300px; left:20%; bottom:-10%; background: radial-gradient(circle at 40% 40%, #ff6bcb, transparent 40%); animation: drift3 20s ease-in-out infinite; }
+    @keyframes drift1 { 0%{transform:translateY(0)}50%{transform:translateY(30px)}100%{transform:translateY(0)} }
+    @keyframes drift2 { 0%{transform:translateY(0)}50%{transform:translateY(-40px)}100%{transform:translateY(0)} }
+    @keyframes drift3 { 0%{transform:translateX(0)}50%{transform:translateX(40px)}100%{transform:translateX(0)} }
+    .calculator { position:relative; width:360px; margin:6vh auto; padding:22px; border-radius:18px; background: rgba(255,255,255,0.03); box-shadow: 0 12px 40px rgba(0,0,0,0.6); z-index:2; }
+    .calc-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+    .calc-header h1 { font-size:18px; margin:0; color:var(--neon-primary); }
+    .display { background: rgba(255,255,255,0.02); border-radius:12px; padding:14px; margin-bottom:14px; position:relative; }
+    .expression { position:absolute; left:16px; top:10px; font-size:13px; color:rgba(230,247,255,0.45); }
+    .display-input { width:100%; border:0; outline:0; background:transparent; color:var(--text); font-size:24px; text-align:right; padding:6px 8px; font-weight:600; }
+    .buttons { display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; grid-auto-rows:56px; }
+    .btn { border-radius:10px; padding:12px 10px; border: 1px solid rgba(255,255,255,0.03); background: rgba(255,255,255,0.02); color:var(--text); font-size:15px; cursor:pointer; }
+    .btn.fn { color: var(--neon-accent); }
+    .btn.op { color: var(--neon-primary); }
+    .btn.equals { grid-column: 4 / 5; grid-row: 6 / 8; background: linear-gradient(180deg, rgba(122,252,255,0.12), rgba(255,107,203,0.08)); color:#071026; font-weight:700; }
+    .btn.wide { grid-column: 1 / 3; }
+    .bottom-row { grid-column: 1 / -1; display:flex; gap:10px; margin-top:4px; }
+    .bottom-row .btn { flex:1; }
+    .credits { margin-top:12px; font-size:12px; color:var(--muted); text-align:center; }
+    @media (max-width:420px){ .calculator { width:94%; } .display-input { font-size:20px; } }
+  </style>
+</head>
+<body>
+  <div class="bg">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <main class="calculator">
+    <header class="calc-header">
+      <h1>Neon Scientific</h1>
+      <div class="mode">Datas</div>
+    </header>
+
+    <section class="display">
+      <div id="expression" class="expression"></div>
+      <input id="display" class="display-input" type="text" autocomplete="off" spellcheck="false" />
+    </section>
+
+    <section class="buttons">
+      <button class="btn fn" data-action="clear">AC</button>
+      <button class="btn fn" data-action="ce">CE</button>
+      <button class="btn fn" data-action="back">DEL</button>
+      <button class="btn fn" data-value="("> (</button>
+
+      <button class="btn fn" data-value=")">)</button>
+      <button class="btn sci" data-value="sin(">sin</button>
+      <button class="btn sci" data-value="cos(">cos</button>
+      <button class="btn sci" data-value="tan(">tan</button>
+
+      <button class="btn op" data-value="^">^</button>
+      <button class="btn sci" data-value="ln(">ln</button>
+      <button class="btn sci" data-value="log10(">log</button>
+      <button class="btn sci" data-value="sqrt(">√</button>
+
+      <button class="btn op" data-value="%">%</button>
+      <button class="btn op" data-value="/">÷</button>
+      <button class="btn num" data-value="7">7</button>
+      <button class="btn num" data-value="8">8</button>
+
+      <button class="btn num" data-value="9">9</button>
+      <button class="btn op" data-value="*">×</button>
+      <button class="btn num" data-value="4">4</button>
+      <button class="btn num" data-value="5">5</button>
+
+      <button class="btn num" data-value="6">6</button>
+      <button class="btn op" data-value="-">−</button>
+      <button class="btn num" data-value="1">1</button>
+      <button class="btn num" data-value="2">2</button>
+
+      <button class="btn num" data-value="3">3</button>
+      <button class="btn op" data-value="+">+</button>
+      <button class="btn num wide" data-value="0">0</button>
+      <button class="btn num" data-value=".">.</button>
+
+      <button class="btn equals" data-action="eval">=</button>
+
+      <div class="bottom-row">
+        <button class="btn const" data-value="π">π</button>
+        <button class="btn const" data-value="e">e</button>
+        <button class="btn fn" data-value="pow(">xʸ</button>
+        <button class="btn fn" data-action="toggleSign">±</button>
+      </div>
+    </section>
+
+    <footer class="credits"> Click numbers/operators  </footer>
+  </main>
+
+<script>
+(function () {
+  const display = document.getElementById("display");
+  const exprDiv = document.getElementById("expression");
+  const buttons = document.querySelectorAll(".btn");
+  let expression = "";
+
+  function appendValue(v){ expression+=String(v); render(); }
+  function render(){ exprDiv.textContent=expression; display.value=expression; }
+  function clearAll(){ expression=""; render(); }
+  function clearEntry(){ let i=findLastTokenStart(expression); expression=expression.slice(0,i); render(); }
+  function backspace(){ expression=expression.slice(0,-1); render(); }
+
+  function toggleSign(){
+    if(!expression){ expression="-"; render(); return; }
+    const s=findLastTokenStart(expression);
+    const token=expression.slice(s);
+    if(/^\(-1\*.*\)$/.test(token)){ expression=expression.slice(0,s)+token.slice(4,-1); render(); return; }
+    if(/^\-/.test(token)){ expression=expression.slice(0,s)+token.replace(/^\-/,''); render(); return; }
+    expression=expression.slice(0,s)+'(-1*'+token+')'; render();
+  }
+
+  function findLastTokenStart(expr){
+    let i=expr.length-1;
+    if(i<0)return 0;
+    if(expr[i]===')'){
+      let d=0;
+      for(;i>=0;i--){
+        if(expr[i]===')')d++;
+        else if(expr[i]==='('){ d--; if(d===0){ i--; break; } }
+      }
+      return Math.max(i+1,0);
+    }
+    const ops="+-*/^%,";
+    while(i>=0&&!ops.includes(expr[i]))i--;
+    return i+1;
+  }
+
+  function sanitizeAndPrepare(s){
+    s=String(s)
+      .replace(/\u00D7/g,'*')
+      .replace(/\u00F7/g,'/')
+      .replace(/−/g,'-')
+      .replace(/[–—]/g,'-')
+      .replace(/\u00A0/g,'')
+      .replace(/π/g,'Math.PI')
+      .replace(/\^/g,'**')
+      .replace(/\bln\(/gi,'Math.log(')
+      .replace(/\blog10\(/gi,'Math.log10(')
+      .replace(/\blog\(/gi,'Math.log10(')
+      .replace(/\b(sin|cos|tan|asin|acos|atan|sqrt|pow|abs)\s*\(/gi,(m,p)=>'Math.'+p+'(')
+      .replace(/(^|[^A-Za-z0-9_.])e([^A-Za-z0-9_.]|$)/g,(a,b,c)=>b+'Math.E'+c)
+      .replace(/(\d+(\.\d+)?)%/g,'($1/100)')
+      .trim();
+
+    const forbidden=/(__proto__|constructor|process|window|document|function|=>|fetch|while|for|return|eval)/i;
+    if(forbidden.test(s)) throw new Error("Forbidden expression");
+
+    const names=s.match(/[A-Za-z_]\w*/g)||[];
+    const bad=names.filter(n=>!["Math","PI","E","sin","cos","tan","asin","acos","atan","sqrt","pow","abs","log10","log"].includes(n));
+    if(bad.length) throw new Error("Unknown identifiers: "+bad.join(","));
+    return s;
+  }
+
+  function safeEvaluate(raw){
+    if(!raw||raw.trim()==="")return "";
+
+    if(raw.includes("=")){
+      const parts=raw.split("=");
+      const lhs=parts[0].trim();
+      const rhs=parts.slice(1).join("=").trim();
+
+      if(/^\d+(\.\d+)?$/.test(lhs)){
+        const p=sanitizeAndPrepare(rhs);
+        const result=(new Function('"use strict";return('+p+')'))();
+        if(typeof result==="number"&&isFinite(result)){
+          return Math.round((result+Number.EPSILON)*1e12)/1e12;
+        }
+        return result;
+      }
+
+      const p=sanitizeAndPrepare(rhs);
+      const result=(new Function('"use strict";return('+p+')'))();
+      if(typeof result==="number"&&isFinite(result)){
+        return lhs+"="+(Math.round((result+Number.EPSILON)*1e12)/1e12);
+      }
+      return lhs+"="+result;
+    }
+
+    const p=sanitizeAndPrepare(raw);
+    const result=(new Function('"use strict";return('+p+')'))();
+    if(typeof result==="number"&&isFinite(result)){
+      return Math.round((result+Number.EPSILON)*1e12)/1e12;
+    }
+    return result;
+  }
+
+  buttons.forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      const v=btn.dataset.value;
+      const a=btn.dataset.action;
+      if(a==="clear"){ clearAll(); return; }
+      if(a==="ce"){ clearEntry(); return; }
+      if(a==="back"){ backspace(); return; }
+      if(a==="toggleSign"){ toggleSign(); return; }
+      if(a==="eval"){
+        try{ expression=String(safeEvaluate(expression)); render(); }
+        catch(e){ display.value="Error"; setTimeout(render,900); }
+        return;
+      }
+      if(v){ appendValue(String(v).replace(/\u00D7/g,'*').replace(/\u00F7/g,'/').replace(/−/g,'-')); }
+    });
+  });
+
+  window.addEventListener("keydown",e=>{
+    const k=e.key;
+    if(/^[0-9+\-*/().,%^=]$/.test(k)){
+      if(k==="="){ appendValue("="); e.preventDefault(); return; }
+      appendValue(k); e.preventDefault(); return;
+    }
+    if(k==="Enter"){
+      try{ expression=String(safeEvaluate(expression)); render(); }
+      catch(e){ display.value="Error"; setTimeout(render,900); }
+      e.preventDefault(); return;
+    }
+    if(k==="Backspace"){ backspace(); e.preventDefault(); return; }
+    if(/^[a-zA-Z]$/.test(k)){ appendValue(k); e.preventDefault(); return; }
+  });
+
+  clearAll();
+})();
+</script>
+</body>
+</html>
